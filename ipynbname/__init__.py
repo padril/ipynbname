@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import urllib.error
 import urllib.request
@@ -62,7 +63,10 @@ def _get_sessions(srv):
         if not token and "JUPYTERHUB_API_TOKEN" in os.environ:
             token = os.environ["JUPYTERHUB_API_TOKEN"]
         qry_str = f"?token={token}" if token else ""
-        url = f"{srv['url']}api/sessions{qry_str}"
+        base_url = srv['url']
+        # This line fixes UofT compatibility
+        base_url = re.sub("jupyter-.*:\\d{4}", "jupyter.utoronto.ca", base_url)
+        url = f"{base_url}api/sessions{qry_str}"
         # Use a timeout in case this is a stale entry.
         with urllib.request.urlopen(url, timeout=0.5) as req:
             return json.load(req)
